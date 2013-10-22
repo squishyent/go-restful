@@ -12,6 +12,8 @@ import (
 	"os"
 )
 
+// go run restful-client-generator.go -url http://localhost:8080/apidocs.json
+
 var apidocsUrl string
 
 func main() {
