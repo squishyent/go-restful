@@ -1,6 +1,7 @@
 package main
 
 import (
+<<<<<<< HEAD
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -13,14 +14,60 @@ import (
 )
 
 type Service struct {
+=======
+	"encoding/json"
+	"errors"
+	"io/ioutil"
+	"net/http"
+)
+
+type UserServiceClient struct {
+>>>>>>> work on example output, add missing Operation in example user-service
 	httpClient *http.Client
 	scheme     string
 	host       string
 	port       int
 }
 
+<<<<<<< HEAD
 func New(client *http.Client, scheme string, host string, port int) *Service {
 	return &Service{client, scheme, host, port}
+=======
+func NewUserServiceClient(client *http.Client, scheme string, host string, port int) *UserServiceClient {
+	return &UserServiceClient{client, scheme, host, port}
+}
+
+func (c UserServiceClient) newURIBuilder(template string) *URIBuilder {
+	return NewURIBuilder(c.scheme, c.host, c.port, template)
+}
+
+type URIBuilder struct {
+	scheme           string
+	host             string
+	port             int
+	template         string
+	pathParameters   map[string]string
+	queryParameters  map[string][]string
+	headerParameters map[string]string
+}
+
+func NewURIBuilder(scheme string, host string, port int, template string) *URIBuilder {
+	return &URIBuilder{
+		scheme: scheme, host: host, port: port,
+		template:         template,
+		pathParameters:   map[string]string{},
+		queryParameters:  map[string][]string{},
+		headerParameters: map[string]string{},
+	}
+}
+
+func (u *URIBuilder) PathParam(name string, value string) {
+	u.pathParameters[name] = value
+}
+
+func (u URIBuilder) Build() string {
+	return ""
+>>>>>>> work on example output, add missing Operation in example user-service
 }
 
 type User struct {
@@ -30,16 +77,24 @@ type User struct {
 
 // findUser : get a user
 // GET /users/{user-id}
+<<<<<<< HEAD
 func (c Service) findUser(user_id string) (*User, error) {
 	var body io.Reader = nil
 	uri := NewURIBuilder(c.scheme, c.host, c.port, "/users/{user-id}")
 	uri.PathParam("user-id", user_id)
 	req, err := http.NewRequest("GET", uri.Build(), body)
+=======
+func (c UserServiceClient) findUser(user_id string) (*User, error) {
+	uri := c.newURIBuilder("/users/{user-id}")
+	uri.PathParam("user-id", user_id)
+	req, err := http.NewRequest("GET", uri.Build(), nil)
+>>>>>>> work on example output, add missing Operation in example user-service
 	req.Header.Set("Accept", "application/json")
 	if err != nil {
 		return nil, err
 	}
 	resp, err := c.httpClient.Do(req)
+<<<<<<< HEAD
 	if err != nil {
 		return nil, err
 	}
@@ -49,11 +104,28 @@ func (c Service) findUser(user_id string) (*User, error) {
 	}
 	model := new(User)
 	if err := json.NewDecoder(resp.Body).Decode(model); err != nil {
+=======
+	defer resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, errors.New(resp.Status)
+	}
+	buffer, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	model := new(User)
+	err = json.Unmarshal(buffer, model)
+	if err != nil {
+>>>>>>> work on example output, add missing Operation in example user-service
 		return nil, err
 	}
 	return model, nil
 }
 
+<<<<<<< HEAD
 func main() {
 	service := New(new(http.Client), "http", "localhost", 8080)
 	usr, err := service.findUser("1")
@@ -137,3 +209,6 @@ func (u URIBuilder) Build() string {
 	}
 	return buf.String()
 }
+=======
+func main() {}
+>>>>>>> work on example output, add missing Operation in example user-service
