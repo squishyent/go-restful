@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 type UserServiceClient struct {
@@ -20,34 +22,6 @@ func NewUserServiceClient(client *http.Client, scheme string, host string, port 
 
 func (c UserServiceClient) newURIBuilder(template string) *URIBuilder {
 	return NewURIBuilder(c.scheme, c.host, c.port, template)
-}
-
-type URIBuilder struct {
-	scheme           string
-	host             string
-	port             int
-	template         string
-	pathParameters   map[string]string
-	queryParameters  map[string][]string
-	headerParameters map[string]string
-}
-
-func NewURIBuilder(scheme string, host string, port int, template string) *URIBuilder {
-	return &URIBuilder{
-		scheme: scheme, host: host, port: port,
-		template:         template,
-		pathParameters:   map[string]string{},
-		queryParameters:  map[string][]string{},
-		headerParameters: map[string]string{},
-	}
-}
-
-func (u *URIBuilder) PathParam(name string, value string) {
-	u.pathParameters[name] = value
-}
-
-func (u URIBuilder) Build() string {
-	return ""
 }
 
 type User struct {
