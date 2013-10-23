@@ -2,6 +2,7 @@ package main
 
 import (
 <<<<<<< HEAD
+<<<<<<< HEAD
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -15,10 +16,14 @@ import (
 
 type Service struct {
 =======
+=======
+	"bytes"
+>>>>>>> uribuilder work
 	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 type UserServiceClient struct {
@@ -41,6 +46,7 @@ func (c UserServiceClient) newURIBuilder(template string) *URIBuilder {
 	return NewURIBuilder(c.scheme, c.host, c.port, template)
 }
 
+<<<<<<< HEAD
 type URIBuilder struct {
 	scheme           string
 	host             string
@@ -70,6 +76,8 @@ func (u URIBuilder) Build() string {
 >>>>>>> work on example output, add missing Operation in example user-service
 }
 
+=======
+>>>>>>> uribuilder work
 type User struct {
 	Id   string
 	Name string
