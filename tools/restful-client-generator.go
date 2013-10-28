@@ -23,8 +23,6 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-	log.Print("fetching Swagger docs")
-
 	listing := new(swagger.ResourceListing)
 	fetch(apidocsUrl, &listing)
 	log.Printf("Api version:%s, Swagger version:%s", listing.ApiVersion, listing.SwaggerVersion)
@@ -46,11 +44,12 @@ func generateForApi(api swagger.Api) {
 }
 
 func fetch(url string, model interface{}) {
+	log.Printf("fetching %s\n", url)
 	resp, err := http.Get(url)
-	defer resp.Body.Close()
 	if err != nil {
 		log.Fatalf("Unable to fetch Swagger specification:%v", err)
 	}
+	defer resp.Body.Close()
 	buffer, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatalf("Unable to read Swagger specification:%v", err)
