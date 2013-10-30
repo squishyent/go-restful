@@ -4,7 +4,11 @@ import (
 	"fmt"
 )
 
-func import_source() string {
+func package_source(pkg string) string {
+	return fmt.Sprintf("package %s\n\n", pkg)
+}
+
+func import_service_new_source() string {
 	return `
 import (
 	"bytes"
@@ -17,11 +21,7 @@ import (
 	"strconv"
 	"strings"
 )
-`
-}
 
-func service_source() string {
-	return `
 type Service struct {
 	httpClient *http.Client
 	scheme     string
@@ -35,8 +35,17 @@ func New(client *http.Client, scheme string, host string, port int) *Service {
 `
 }
 
+func newuri_source(path string) string {
+	return fmt.Sprintf(`	var body io.Reader = nil
+	uri := NewURIBuilder(c.scheme, c.host, c.port, "%s")
+`, path)
+}
+
 func dorequest_source() string {
-	return `resp, err := c.httpClient.Do(req)
+	return `	if err != nil {
+		return nil, err
+	}
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -47,14 +56,22 @@ func dorequest_source() string {
 }
 
 func decoderesponse_source(typeName string) string {
-	return fmt.Sprintf("model := new(%s)
+	return fmt.Sprintf(`model := new(%s)
 	if err := json.NewDecoder(resp.Body).Decode(model); err != nil {
 		return nil, err
 	}
 	return model, nil
-	", typeName)
+	`, typeName)
 }
 
 func createrequest_source(method string) string {
-	return fmt.Sprintf("req, err := http.NewRequest(\"%s\", uri.Build(), body)", method)
+	return fmt.Sprintf("	req, err := http.NewRequest(\"%s\", uri.Build(), body)\n", method)
+}
+
+func contenttype_source(mime string) string {
+	return fmt.Sprintf("	req.Header.Set(\"Content-Type\", \"%s\")\n", mime)
+}
+
+func accept_source(mime string) string {
+	return fmt.Sprintf("	req.Header.Set(\"Accept\", \"%s\")\n", mime)
 }
