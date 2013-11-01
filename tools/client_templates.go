@@ -5,7 +5,7 @@ import (
 )
 
 func package_source(pkg string) string {
-	return fmt.Sprintf("package %s\n\n", pkg)
+	return fmt.Sprintf("package %s\n", pkg)
 }
 
 func import_service_new_source() string {
@@ -14,7 +14,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -32,12 +31,13 @@ type Service struct {
 func New(client *http.Client, scheme string, host string, port int) *Service {
 	return &Service{client, scheme, host, port}
 }
+
 `
 }
 
 func newuri_source(path string) string {
 	return fmt.Sprintf(`	var body io.Reader = nil
-	uri := NewURIBuilder(c.scheme, c.host, c.port, "%s")
+	uri := newUriBuilder(c.scheme, c.host, c.port, "%s")
 `, path)
 }
 
@@ -65,7 +65,7 @@ func decoderesponse_source(typeName string) string {
 }
 
 func createrequest_source(method string) string {
-	return fmt.Sprintf("	req, err := http.NewRequest(\"%s\", uri.Build(), body)\n", method)
+	return fmt.Sprintf("	req, err := http.NewRequest(\"%s\", uri.build(), body)\n", method)
 }
 
 func contenttype_source(mime string) string {

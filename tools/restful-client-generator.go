@@ -15,12 +15,14 @@ import (
 	"strings"
 )
 
-// go run restful-client-generator.go -url http://localhost:8080/apidocs.json
+// go run *.go -url http://localhost:8080/apidocs.json -pkg users && cat /tmp/service.go
 
 var apidocsUrl string
+var packageName string
 
 func main() {
 	flag.StringVar(&apidocsUrl, "url", "", "endpoint of a REST service (e.g. http://myservice/apidocs.json)")
+	flag.StringVar(&packageName, "pkg", "", "name of the package for the generated Service.")
 	flag.Parse()
 	if len(apidocsUrl) == 0 {
 		flag.PrintDefaults()
@@ -38,9 +40,9 @@ func main() {
 func generateForApi(api swagger.Api) {
 	declaration := new(swagger.ApiDeclaration)
 	fetch(apidocsUrl+api.Path, &declaration)
-	out, _ := os.Create("service.out")
+	out, _ := os.Create("/tmp/service.go")
 	defer out.Close()
-	io.WriteString(out, package_source("userservice"))
+	io.WriteString(out, package_source(packageName))
 	io.WriteString(out, import_service_new_source())
 
 	for _, each := range declaration.Apis {
@@ -49,10 +51,10 @@ func generateForApi(api swagger.Api) {
 			generateForOperation(each.Path, op, out)
 		}
 	}
+	io.WriteString(out, uribuilder_source())
 }
 
 func generateForOperation(path string, op swagger.Operation, out io.Writer) {
-	log.Printf("operation:%v\n", op.HttpMethod)
 	io.WriteString(out, "func (c Service) ")
 	io.WriteString(out, op.Nickname)
 	io.WriteString(out, "(")
@@ -63,8 +65,10 @@ func generateForOperation(path string, op swagger.Operation, out io.Writer) {
 		writeParameterSignature(each, out)
 	}
 	io.WriteString(out, ") ")
-	if "void" != op.Type {
-		io.WriteString(out, op.Type)
+	if "void" == op.Type {
+		io.WriteString(out, "(interface{}, error)")
+	} else {
+		io.WriteString(out, "("+noPkg(op.Type)+", error)")
 	}
 	io.WriteString(out, " {\n")
 	io.WriteString(out, newuri_source(path))
@@ -79,19 +83,27 @@ func generateForOperation(path string, op swagger.Operation, out io.Writer) {
 
 func writeSetUriParameter(param swagger.Parameter, out io.Writer) {
 	if "path" == param.ParamType {
-		io.WriteString(out, fmt.Sprintf("\turi.PathParam(\"%s\",%s)\n", param.Name, toVar(param.Name)))
+		io.WriteString(out, fmt.Sprintf("\turi.pathParam(\"%s\",%s)\n", param.Name, toVar(param.Name)))
 	} else if "query" == param.ParamType {
-		io.WriteString(out, fmt.Sprintf("\turi.QueryParam(\"%s\",%s)\n", param.Name, toVar(param.Name)))
+		io.WriteString(out, fmt.Sprintf("\turi.queryParam(\"%s\",%s)\n", param.Name, toVar(param.Name)))
 	}
 }
 
 func writeParameterSignature(param swagger.Parameter, out io.Writer) {
-	log.Printf("parameter:%v\n", param)
-	fmt.Fprintf(out, "%s %s", toVar(param.Name), param.Type)
+	fmt.Fprintf(out, "%s %s", toVar(noPkg(param.Name)), noPkg(param.Type))
 }
 
 func toVar(varName string) string {
-	return strings.NewReplacer("-", "_").Replace(varName)
+	return strings.ToLower(strings.NewReplacer("-", "_").Replace(varName))
+}
+
+func noPkg(name string) string {
+	dot := strings.LastIndex(name, ".")
+	if dot == -1 {
+		return name
+	} else {
+		return name[dot+1:]
+	}
 }
 
 func fetch(url string, model interface{}) {
