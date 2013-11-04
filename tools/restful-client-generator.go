@@ -3,6 +3,7 @@ package main
 // Takes a Swagger JSON file and generates a Service Http client in Go
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -19,6 +20,7 @@ import (
 
 var apidocsUrl string
 var packageName string
+var models map[string]swagger.Model
 
 func main() {
 	flag.StringVar(&apidocsUrl, "url", "", "endpoint of a REST service (e.g. http://myservice/apidocs.json)")
@@ -28,30 +30,55 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
+	models = map[string]swagger.Model{}
 	listing := new(swagger.ResourceListing)
 	fetch(apidocsUrl, &listing)
 	log.Printf("Api version:%s, Swagger version:%s", listing.ApiVersion, listing.SwaggerVersion)
 
-	for _, each := range listing.Apis {
-		generateForApi(each)
-	}
-}
-
-func generateForApi(api swagger.Api) {
-	declaration := new(swagger.ApiDeclaration)
-	fetch(apidocsUrl+api.Path, &declaration)
 	out, _ := os.Create("/tmp/service.go")
 	defer out.Close()
+	// import and declarations
 	io.WriteString(out, package_source(packageName))
 	io.WriteString(out, import_service_new_source())
+	// all methods
+	for _, each := range listing.Apis {
+		generateForApi(each, out)
+	}
+	// all models
+	for _, model := range models {
+		generateForModel(model, out)
+	}
+	// helpers
+	io.WriteString(out, uribuilder_source())
+}
+
+func generateForApi(api swagger.Api, out io.Writer) {
+	declaration := new(swagger.ApiDeclaration)
+	fetch(apidocsUrl+api.Path, &declaration)
 
 	for _, each := range declaration.Apis {
 		log.Printf("api:%v\n", each.Path)
 		for _, op := range each.Operations {
 			generateForOperation(each.Path, op, out)
 		}
+		// collect all models
+		for _, model := range each.Models {
+			models[model.Id] = model
+		}
 	}
-	io.WriteString(out, uribuilder_source())
+}
+
+func generateForModel(model swagger.Model, out io.Writer) {
+	log.Printf("model:%s\n", model.Id)
+	io.WriteString(out, "type "+noPkg(model.Id)+" struct {\n")
+	for name, each := range model.Properties {
+		generateForModelProperty(name, each, out)
+	}
+	io.WriteString(out, "}\n")
+}
+
+func generateForModelProperty(name string, prop swagger.ModelProperty, out io.Writer) {
+	io.WriteString(out, fmt.Sprintf("\t%s	%s	`json:\"%s,omitempty\"`\n", name, prop.Type, name))
 }
 
 func generateForOperation(path string, op swagger.Operation, out io.Writer) {
@@ -68,7 +95,7 @@ func generateForOperation(path string, op swagger.Operation, out io.Writer) {
 	if "void" == op.Type {
 		io.WriteString(out, "(interface{}, error)")
 	} else {
-		io.WriteString(out, "("+noPkg(op.Type)+", error)")
+		io.WriteString(out, "(*"+noPkg(op.Type)+", error)")
 	}
 	io.WriteString(out, " {\n")
 	io.WriteString(out, newuri_source(path))
@@ -76,8 +103,13 @@ func generateForOperation(path string, op swagger.Operation, out io.Writer) {
 		writeSetUriParameter(each, out)
 	}
 	io.WriteString(out, createrequest_source(op.HttpMethod))
-	io.WriteString(out, accept_source(op.Consumes[0])) // TODO list all
+	io.WriteString(out, accept_source(toCommaSeparated(op.Consumes)))
 	io.WriteString(out, dorequest_source())
+	if "void" != op.Type {
+		io.WriteString(out, decoderesponse_source(noPkg(op.Type)))
+	} else {
+		io.WriteString(out, "	return nil,nil")
+	}
 	io.WriteString(out, "\n}\n")
 }
 
@@ -95,6 +127,17 @@ func writeParameterSignature(param swagger.Parameter, out io.Writer) {
 
 func toVar(varName string) string {
 	return strings.ToLower(strings.NewReplacer("-", "_").Replace(varName))
+}
+
+func toCommaSeparated(names []string) string {
+	var buf bytes.Buffer
+	for i, each := range names {
+		if i > 0 {
+			buf.WriteRune(',')
+		}
+		buf.WriteString(each)
+	}
+	return buf.String()
 }
 
 func noPkg(name string) string {

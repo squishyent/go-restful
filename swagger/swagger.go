@@ -7,30 +7,24 @@ type ResourceListing struct {
 	ApiVersion     string `json:"apiVersion"`
 	SwaggerVersion string `json:"swaggerVersion"` // e.g 1.2
 	// BasePath       string `json:"basePath"`  obsolete in 1.1
-	Apis []ApiRef `json:"apis"`
-}
-
-type ApiRef struct {
-	Path        string `json:"path"` // relative or absolute, must start with /
-	Description string `json:"description"`
-}
-
-// https://github.com/wordnik/swagger-core/blob/scala_2.10-1.3-RC3/schemas/api-declaration-schema.json
-type ApiDeclaration struct {
-	ApiVersion     string           `json:"apiVersion"`
-	SwaggerVersion string           `json:"swaggerVersion"`
-	BasePath       string           `json:"basePath"`
-	ResourcePath   string           `json:"resourcePath"` // must start with /
-	Consumes       []string         `json:"consumes,omitempty"`
-	Produces       []string         `json:"produces,omitempty"`
-	Apis           []Api            `json:"apis,omitempty"`
-	Models         map[string]Model `json:"models,omitempty"`
+	Apis []Api `json:"apis"`
 }
 
 type Api struct {
-	Path        string      `json:"path"` // relative or absolute, must start with /
-	Description string      `json:"description"`
-	Operations  []Operation `json:"operations,omitempty"`
+	Path        string           `json:"path"` // relative or absolute, must start with /
+	Description string           `json:"description"`
+	Operations  []Operation      `json:"operations,omitempty"`
+	Models      map[string]Model `json:"models,omitempty"`
+}
+
+type ApiDeclaration struct {
+	ApiVersion     string   `json:"apiVersion"`
+	SwaggerVersion string   `json:"swaggerVersion"`
+	BasePath       string   `json:"basePath"`
+	ResourcePath   string   `json:"resourcePath"` // must start with /
+	Apis           []Api    `json:"apis,omitempty"`
+	Consumes       []string `json:"consumes,omitempty"`
+	Produces       []string `json:"produces,omitempty"`
 }
 
 type Operation struct {
