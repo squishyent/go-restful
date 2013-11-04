@@ -13,6 +13,7 @@ func import_service_new_source() string {
 import (
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"io"
 	"net/http"
@@ -52,15 +53,25 @@ func dorequest_source() string {
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		return nil, errors.New(resp.Status)
-	}`
+	}
+`
 }
 
 func decoderesponse_source(typeName string) string {
-	return fmt.Sprintf(`model := new(%s)
-	if err := json.NewDecoder(resp.Body).Decode(model); err != nil {
-		return nil, err
+	return fmt.Sprintf(`	model := new(%s)
+	ctype := resp.Header.Get("Content-Type")
+	if "application/json" == ctype {
+		if err := json.NewDecoder(resp.Body).Decode(model); err != nil {
+			return nil, err
+		}				
+		return model, err
+	} else if "application/xml" == ctype {
+		if err := xml.NewDecoder(resp.Body).Decode(model); err != nil {
+			return nil, err
+		}				
+		return model, err		
 	}
-	return model, nil
+	return nil, errors.New("Cannot decode content with type:"+ctype)
 	`, typeName)
 }
 

@@ -13,8 +13,8 @@ type ResourceListing struct {
 type Api struct {
 	Path        string           `json:"path"` // relative or absolute, must start with /
 	Description string           `json:"description"`
-	Operations  []Operation      `json:"operations"`
-	Models      map[string]Model `json:"models"`
+	Operations  []Operation      `json:"operations,omitempty"`
+	Models      map[string]Model `json:"models,omitempty"`
 }
 
 type ApiDeclaration struct {
