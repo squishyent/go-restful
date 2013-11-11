@@ -33,8 +33,6 @@ func main() {
 	models = map[string]swagger.Model{}
 	listing := new(swagger.ResourceListing)
 	fetch(apidocsUrl, &listing)
-	log.Printf("Api version:%s, Swagger version:%s", listing.ApiVersion, listing.SwaggerVersion)
-
 	out, _ := os.Create("/tmp/service.go")
 	defer out.Close()
 	// import and declarations
@@ -52,24 +50,22 @@ func main() {
 	io.WriteString(out, uribuilder_source())
 }
 
-func generateForApi(api swagger.Api, out io.Writer) {
+func generateForApi(apiRef swagger.ApiRef, out io.Writer) {
 	declaration := new(swagger.ApiDeclaration)
-	fetch(apidocsUrl+api.Path, &declaration)
+	fetch(apidocsUrl+apiRef.Path, &declaration)
 
 	for _, each := range declaration.Apis {
-		log.Printf("api:%v\n", each.Path)
 		for _, op := range each.Operations {
 			generateForOperation(each.Path, op, out)
 		}
-		// collect all models
-		for _, model := range each.Models {
-			models[model.Id] = model
-		}
+	}
+	// collect all models
+	for _, model := range declaration.Models {
+		models[model.Id] = model
 	}
 }
 
 func generateForModel(model swagger.Model, out io.Writer) {
-	log.Printf("model:%s\n", model.Id)
 	io.WriteString(out, "type "+noPkg(model.Id)+" struct {\n")
 	for name, each := range model.Properties {
 		generateForModelProperty(name, each, out)
