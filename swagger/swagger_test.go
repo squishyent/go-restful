@@ -2,7 +2,7 @@ package swagger
 
 import (
 	"encoding/json"
-	"github.com/emicklei/go-restful"
+	"github.com/squishyent/go-restful"
 	"os"
 	"testing"
 )

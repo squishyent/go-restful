@@ -1,6 +1,6 @@
 package swagger
 
-import "github.com/emicklei/go-restful"
+import "github.com/squishyent/go-restful"
 
 type Config struct {
 	WebServicesUrl  string // url where the services are available, e.g. http://localhost:8080

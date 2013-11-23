@@ -69,7 +69,7 @@ These are processed before calling the function associated with the Route.
 	ws.Route(ws.GET("/{user-id}").Filter(routeLogging).Filter(NewCountFilter().routeCounter).To(findUser))
 
 
-See the example https://github.com/emicklei/go-restful/blob/master/examples/restful-filters.go with full implementations.
+See the example https://github.com/squishyent/go-restful/blob/master/examples/restful-filters.go with full implementations.
 
 Response Encoding
 
@@ -80,7 +80,7 @@ Two encodings are supported: gzip and deflate. To enable this for all responses:
 If a Http request includes the Accept-Encoding header then the response content will be compressed using the specified encoding.
 
 Alternatively, you can create a Filter that performs the encoding and install it per WebService or Route.
-See the example https://github.com/emicklei/go-restful/blob/master/examples/restful-encoding-filter.go
+See the example https://github.com/squishyent/go-restful/blob/master/examples/restful-encoding-filter.go
 
 OPTIONS support
 
@@ -143,15 +143,15 @@ Use the Go standard http.ServeFile function to serve file system assets.
 			path.Join(rootdir, req.PathParameter("resource")))
 	}
 
-See the example https://github.com/emicklei/go-restful/blob/master/examples/restful-serve-static.go with full implementations.
+See the example https://github.com/squishyent/go-restful/blob/master/examples/restful-serve-static.go with full implementations.
 
 
 
 Resources
 
-[project]: https://github.com/emicklei/go-restful
+[project]: https://github.com/squishyent/go-restful
 
-[example]: https://github.com/emicklei/go-restful/blob/master/examples/restful-user-resource.go
+[example]: https://github.com/squishyent/go-restful/blob/master/examples/restful-user-resource.go
 
 [design]:  http://ernestmicklei.com/2012/11/11/go-restful-api-design/
 

@@ -1,7 +1,7 @@
 package swagger
 
 import (
-	"github.com/emicklei/go-restful"
+	"github.com/squishyent/go-restful"
 	// "github.com/emicklei/hopwatch"
 	"log"
 	"net/http"
